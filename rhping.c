@@ -207,7 +207,7 @@ void ping_loop() {
   sigaction(SIGALRM, &act, &oact);
 
   flag = 1;
-  
+
   while(1) {
     if ( flag == 1 ) {
         alarm(1);
@@ -260,10 +260,6 @@ int main(int argc, char *argv[]) {
   printf("PING %s(%s): %d bytes data in ICMP packets.\n", argv[1], inet_ntoa(dest_addr.sin_addr),datalen);
 
   signal(SIGINT, statistics);
-
-  struct timeval tv;
-  tv.tv_sec = 1;
-  tv.tv_usec = 0;
 
   ping_loop();
 
