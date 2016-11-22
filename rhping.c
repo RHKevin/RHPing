@@ -191,7 +191,7 @@ void pinger() {
   recv_packet();
 }
 
-volatile int flag = 0;
+static volatile sig_atomic_t flag = 0;
 
 void setflag(int whatever) {
   flag = 1;
@@ -204,18 +204,26 @@ void ping_loop() {
   sigemptyset(&act.sa_mask);
   act.sa_flags = 0;
 
+  sigset_t zeroset;
+  sigemptyset(&zeroset);
+
   sigaction(SIGALRM, &act, &oact);
 
   flag = 1;
 
-  while(1) {
+  while ( 1 ) {
     if ( flag == 1 ) {
         alarm(1);
         flag = 0;
         pinger();
-    }
+     }
+    //else {
+    //   while ( flag == 0 )
+    //     sigsuspend(&zeroset);
+    // }
+    /*here the else segment can reduce the loop times of while to twice a ping round(when not timeout and no other signal occur),
+    but it increase about 0.05ms round-trip time.*/
   }
-
 }
 
 int main(int argc, char *argv[]) {
@@ -259,7 +267,12 @@ int main(int argc, char *argv[]) {
   pid = getpid();
   printf("PING %s(%s): %d bytes data in ICMP packets.\n", argv[1], inet_ntoa(dest_addr.sin_addr),datalen);
 
-  signal(SIGINT, statistics);
+  struct sigaction act;
+  sigemptyset(&act.sa_mask);
+  sigaddset(&act.sa_mask, SIGALRM);
+  act.sa_flags = 0;
+  act.sa_handler = statistics;
+  sigaction(SIGINT, &act, NULL);
 
   ping_loop();
 
