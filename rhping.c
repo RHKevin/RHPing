@@ -213,8 +213,8 @@ void ping_loop() {
 
   while ( 1 ) {
     if ( flag == 1 ) {
-        alarm(1);
         flag = 0;
+        alarm(1);
         pinger();
      }
     //else {
